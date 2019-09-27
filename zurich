@@ -1,0 +1,28 @@
+##############
+# HackZurich #
+##############
+
+server {
+    listen 443 ssl; # managed by Certbot
+    server_name zurich.kosyachniy.com;
+    client_max_body_size 20M;
+
+    location / {
+        rewrite ^/api/?(.*)$ /$1 break;
+        proxy_pass http://127.0.0.1:5201;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+}
+
+server {
+    listen 80;
+    server_name zurich.kosyachniy.com;
+
+    if ($host = zurich.kosyachniy.com) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+    return 404; # managed by Certbot
+}
