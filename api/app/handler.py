@@ -18,17 +18,34 @@ gmaps = googlemaps.Client(key=KEY)
 def handler(emojis, time, geo):
 	points = []
 
+	# Выборка эмодзи
+
+	emojis = list(emojis)
+
+	o = 0
+	while len(emojis) > o:
+		if emojis[o] not in CATEGORIES:
+			del emojis[o]
+		else:
+			o += 1
+
+	random.shuffle(emojis)
+
+	if len(emojis) > 3:
+		emojis = emojis[:3]
+	
+	# ! Учитывать время в каждой точке
+
+	#
+
 	for emoji in emojis:
 		# Преобразование в категории
-
-		if emoji not in CATEGORIES:
-			continue
 
 		category = CATEGORIES[emoji]
 
 		# Время в расстояние
 
-		radius = dist2coords(80 * time) # m/min * min -> geo dist # 85
+		radius = dist2coords(85 * time) # m/min * min -> geo dist # 80
 
 		# Преобразование в места
 
