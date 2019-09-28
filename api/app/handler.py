@@ -3,6 +3,7 @@ import random
 
 import googlemaps
 
+from coords2dist import coords2dist
 
 with open('keys.json', 'r') as file:
 	KEY = json.loads(file.read())['google']['maps']['key']
@@ -14,8 +15,10 @@ gmaps = googlemaps.Client(key=KEY)
 
 
 def handler(emojis, time, geo):
-	points = []
-	ids = set()
+	points = [{
+		'geo': geo,
+		'delta': 0,
+	}]
 
 	# Выборка эмодзи
 
@@ -33,18 +36,14 @@ def handler(emojis, time, geo):
 	# Время в расстояние
 
 	# ! Учитывать время в каждой точке
-	radius = 2.5 * time # m/min * min -> geo dist # 85
-	geo_start = geo
-	radius_delta = 0
-
-	print('r=', radius)
+	radius = 2.5 * time # m/min * min -> geo dist / count of places # 85 m/min
 
 	#
 
 	for emoji in emojis:
 		# Ограничение, если слишком длинный путь
 
-		if len(points) > 2:
+		if len(points) > 3:
 			break
 
 		# Преобразование в категории
@@ -52,17 +51,6 @@ def handler(emojis, time, geo):
 		category = CATEGORIES[emoji]
 
 		# Преобразование в места
-
-		# place = gmaps.find_place(
-		# 	category,
-		# 	'textquery',
-		# 	fields=[
-		# 		'place_id',
-		# 		'geometry/location',
-		# 		'name',
-		# 	],
-		# 	location_bias='circle:{}@{},{}'.format(radius, geo['lat'], geo['lng']),
-		# )
 
 		places = gmaps.places_nearby(
 			location=(geo['lat'], geo['lng']),
@@ -75,21 +63,48 @@ def handler(emojis, time, geo):
 		while len(places) > o:
 			# Если уже было такое место
 
-			if places[o]['place_id'] in ids:
-				del places[o]
-				continue
+			for point in points:
+				if places[o]['geometry']['location'] == point['geo']:
+					del places[o]
+					continue
 
-			# Если место в обратной стороне
+			# # Если место в обратной стороне
 
-			if len(points) >= 1 and ((geo_start['lat'] - places[o]['geometry']['location']['lat']) ** 2 + (geo_start['lng'] - places[o]['geometry']['location']['lng']) ** 2) <= radius_delta:
-				del places[o]
-				continue
+			# # if len(points) > 1:
+			# # 	t = False
 
-			# # Слишком близко
+			# # 	for ind, point in enumerate(points):
+			# # 		if ((point['geo']['lat'] - places[o]['geometry']['location']['lat']) ** 2 + (point['geo']['lng'] - places[o]['geometry']['location']['lng']) ** 2) <= ((points[ind+1]['geo']['lat'] - places[o]['geometry']['location']['lat']) ** 2 + (points[ind+1]['geo']['lng'] - places[o]['geometry']['location']['lng']) ** 2):
+			# # 			t = True
 
-			# if ((geo['lat'] - places[o]['geometry']['location']['lat']) ** 2 + (geo['lng'] - places[o]['geometry']['location']['lng']) ** 2) ** 0.5 <= 0.01:
+			# # 	if t:
+			# # 		del places[o]
+			# # 		continue
+
+			# if len(points) > 1 and ((points[-2]['geo']['lat'] - places[o]['geometry']['location']['lat']) ** 2 + (points[-2]['geo']['lng'] - places[o]['geometry']['location']['lng']) ** 2) <= ((points[-1]['geo']['lat'] - places[o]['geometry']['location']['lat']) ** 2 + (points[-1]['geo']['lng'] - places[o]['geometry']['location']['lng']) ** 2):
 			# 	del places[o]
 			# 	continue
+
+
+			if len(points) >= 1:
+				t = False
+
+				for point in points:
+					delta = coords2dist((point['geo']['lat'], point['geo']['lng']), (places[o]['geometry']['location']['lat'], places[o]['geometry']['location']['lng']))
+
+					# Если путь неоптимальный
+
+					if delta <= point['delta']:
+						t = True
+
+					# Слишком близко
+
+					if delta <= 150:
+						t = True
+
+				if t:
+					del places[o]
+					continue
 
 			#
 
@@ -104,14 +119,25 @@ def handler(emojis, time, geo):
 
 		place = places[random.randint(0, len(places)-1)]
 
-		geo = place['geometry']['location'] # Обновляем текущее местоположение
-		radius_delta = ((geo_start['lat'] - place['geometry']['location']['lat']) ** 2 + (geo_start['lng'] - place['geometry']['location']['lng']) ** 2)
+		# Обновляем текущее местоположение
+
+		geo = place['geometry']['location']
+
+		# Обновляем дельты (для того, чтобы не идти обратно)
+
+		for i in range(len(points)):
+			points[i]['delta'] = coords2dist((points[i]['geo']['lat'], points[i]['geo']['lng']), (place['geometry']['location']['lat'], place['geometry']['location']['lng']))
+
+		#
 
 		points.append({
 			'id': place['place_id'],
 			'name': place['name'],
 			'geo': place['geometry']['location'],
 			'emoji': emoji,
+			'delta': 0,
 		})
+	
+	print(json.dumps(points, ensure_ascii=False, indent='\t'))
 
-	return points
+	return points[1:]
