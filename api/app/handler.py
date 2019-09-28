@@ -32,21 +32,22 @@ def handler(emojis, time, geo):
 
 	random.shuffle(emojis)
 
-	if len(emojis) > 3:
-		emojis = emojis[:3]
-	
+	# Время в расстояние
+
 	# ! Учитывать время в каждой точке
+	radius = dist2coords(185 * time) # m/min * min -> geo dist # 80
 
 	#
 
 	for emoji in emojis:
+		# Ограничение, если слишком длинный путь
+
+		if len(points) > 3:
+			break
+
 		# Преобразование в категории
 
 		category = CATEGORIES[emoji]
-
-		# Время в расстояние
-
-		radius = dist2coords(85 * time) # m/min * min -> geo dist # 80
 
 		# Преобразование в места
 
@@ -67,14 +68,32 @@ def handler(emojis, time, geo):
 			keyword = category,
 		)['results']
 
-		# Если уже было такое место
 
 		o = 0
 		while len(places) > o:
+			# Если уже было такое место
+
 			if places[o]['place_id'] in ids:
 				del places[o]
-			else:
-				o += 1
+				continue
+			
+			# Если место в обратной стороне
+
+			if len(points) > 1:
+				t = False
+
+				for point in points[:-1]:
+					if ((point['geo']['lat'] - places[o]['geometry']['location']['lat']) ** 2 + (point['geo']['lng'] - places[o]['geometry']['location']['lng']) ** 2) ** 0.5 <= radius:
+						t = True
+						break
+				
+				if t:
+					del places[o]
+					continue
+
+			#
+
+			o += 1
 
 		# Если ни одного места
 
