@@ -5,6 +5,7 @@ import googlemaps
 
 from coords2dist import coords2dist
 
+
 with open('keys.json', 'r') as file:
 	KEY = json.loads(file.read())['google']['maps']['key']
 
@@ -68,29 +69,44 @@ def handler(emojis, time, geo):
 					del places[o]
 					continue
 
-			# # Если место в обратной стороне
+			# Если место в обратной стороне
 
-			# # if len(points) > 1:
-			# # 	t = False
+			if len(points) > 1 and (
+				coords2dist(
+					(
+						points[-2]['geo']['lat'],
+						points[-2]['geo']['lng']
+					), (
+						places[o]['geometry']['location']['lat'],
+						places[o]['geometry']['location']['lng']
+					)
+				) <= coords2dist(
+					(
+						points[-1]['geo']['lat'],
+						points[-1]['geo']['lng']
+					), (
+						places[o]['geometry']['location']['lat'],
+						places[o]['geometry']['location']['lng']
+					)
+				)):
+				del places[o]
+				continue
 
-			# # 	for ind, point in enumerate(points):
-			# # 		if ((point['geo']['lat'] - places[o]['geometry']['location']['lat']) ** 2 + (point['geo']['lng'] - places[o]['geometry']['location']['lng']) ** 2) <= ((points[ind+1]['geo']['lat'] - places[o]['geometry']['location']['lat']) ** 2 + (points[ind+1]['geo']['lng'] - places[o]['geometry']['location']['lng']) ** 2):
-			# # 			t = True
-
-			# # 	if t:
-			# # 		del places[o]
-			# # 		continue
-
-			# if len(points) > 1 and ((points[-2]['geo']['lat'] - places[o]['geometry']['location']['lat']) ** 2 + (points[-2]['geo']['lng'] - places[o]['geometry']['location']['lng']) ** 2) <= ((points[-1]['geo']['lat'] - places[o]['geometry']['location']['lat']) ** 2 + (points[-1]['geo']['lng'] - places[o]['geometry']['location']['lng']) ** 2):
-			# 	del places[o]
-			# 	continue
-
+			#
 
 			if len(points) >= 1:
 				t = False
 
 				for point in points:
-					delta = coords2dist((point['geo']['lat'], point['geo']['lng']), (places[o]['geometry']['location']['lat'], places[o]['geometry']['location']['lng']))
+					delta = coords2dist(
+						(
+							point['geo']['lat'],
+							point['geo']['lng']
+						), (
+							places[o]['geometry']['location']['lat'],
+							places[o]['geometry']['location']['lng']
+						)
+					)
 
 					# Если путь неоптимальный
 
@@ -99,7 +115,7 @@ def handler(emojis, time, geo):
 
 					# Слишком близко
 
-					if delta <= 150:
+					if delta <= time * 1.5: # 90 m/min -> m/h
 						t = True
 
 				if t:
@@ -126,7 +142,15 @@ def handler(emojis, time, geo):
 		# Обновляем дельты (для того, чтобы не идти обратно)
 
 		for i in range(len(points)):
-			points[i]['delta'] = coords2dist((points[i]['geo']['lat'], points[i]['geo']['lng']), (place['geometry']['location']['lat'], place['geometry']['location']['lng']))
+			points[i]['delta'] = coords2dist(
+				(
+					points[i]['geo']['lat'],
+					points[i]['geo']['lng']
+				), (
+					place['geometry']['location']['lat'],
+					place['geometry']['location']['lng']
+				)
+			)
 
 		#
 
