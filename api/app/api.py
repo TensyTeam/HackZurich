@@ -18,7 +18,7 @@ def test():
 	print(x)
 
 	return json.dumps(
-		handler('🍩🌃🍺', 180, {'lat': 47.390325, 'lng': 8.515934}),
+		handler('🍩🌃🍺🍽🛏', 180, {'lat': 47.390325, 'lng': 8.515934}),
 		ensure_ascii=False,
 		indent='\t',
 	)
