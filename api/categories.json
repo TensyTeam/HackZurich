@@ -580,10 +580,11 @@
 	"👩‍🚀": "Airport",
 	"👨‍🚀": "Airport",
 
-	"🚀": "Hack Zurich",
-	"🛰": "Hack Zurich",
-	"👩‍💻": "Hack Zurich",
-	"👨‍💻": "Hack Zurich",
+	"🚀": "Coworking",
+	"🛰": "Coworking",
+	"👩‍💻": "Coworking",
+	"👨‍💻": "Coworking",
+	"👩": "Coworking",
 
 	"🎡": "Amusement",
 	"🎢": "Amusement",
@@ -667,7 +668,6 @@
 	"👧": "Park",
 	"🧒": "Park",
 	"👦": "Park",
-	"👩": "Park",
 	"🧑": "Park",
 	"👨": "Park",
 	"👵": "Park",

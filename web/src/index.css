@@ -1,0 +1,22 @@
+/* @import url('https://fonts.googleapis.com/css?family=Raleway:300,400,700&display=swap');  */
+@import url('https://fonts.googleapis.com/css?family=Righteous&display=swap');
+html {
+  overflow: hidden;
+}
+body {
+  margin: 0;
+  /* font-family: 'Raleway', sans-serif; */
+  font-family: 'Righteous', cursive;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  background: #FFC371; /* fallback for old browsers */
+  background: -webkit-linear-gradient(to top, #FFC371, #fca4a4); /* Chrome 10-25, Safari 5.1-6 */
+  background: linear-gradient(to top, #FFC371, #fca4a4); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+  overflow: hidden;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+    monospace;
+}
