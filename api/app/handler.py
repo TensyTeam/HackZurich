@@ -35,7 +35,7 @@ def handler(emojis, time, geo):
 	# Время в расстояние
 
 	# ! Учитывать время в каждой точке
-	radius = dist2coords(185 * time) # m/min * min -> geo dist # 80
+	radius = 80 * time # m/min * min -> geo dist # 80 # 85
 
 	#
 
@@ -76,20 +76,26 @@ def handler(emojis, time, geo):
 			if places[o]['place_id'] in ids:
 				del places[o]
 				continue
-			
+
 			# Если место в обратной стороне
 
 			if len(points) > 1:
 				t = False
 
-				for point in points[:-1]:
-					if ((point['geo']['lat'] - places[o]['geometry']['location']['lat']) ** 2 + (point['geo']['lng'] - places[o]['geometry']['location']['lng']) ** 2) ** 0.5 <= radius:
+				for ind, point in enumerate(points[:-1]):
+					if ((point['geo']['lat'] - places[o]['geometry']['location']['lat']) ** 2 + (point['geo']['lng'] - places[o]['geometry']['location']['lng']) ** 2) <= ((point['geo']['lat'] - points[ind+1]['geo']['lat']) ** 2 + (point['geo']['lng'] - points[ind+1]['geo']['lng']) ** 2):
 						t = True
 						break
-				
+
 				if t:
 					del places[o]
 					continue
+
+			# # Слишком близко
+
+			# if ((geo['lat'] - places[o]['geometry']['location']['lat']) ** 2 + (geo['lng'] - places[o]['geometry']['location']['lng']) ** 2) ** 0.5 <= 0.01:
+			# 	del places[o]
+			# 	continue
 
 			#
 
