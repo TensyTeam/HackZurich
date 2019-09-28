@@ -3,8 +3,6 @@ import random
 
 import googlemaps
 
-from dist2coords import dist2coords
-
 
 with open('keys.json', 'r') as file:
 	KEY = json.loads(file.read())['google']['maps']['key']
@@ -35,14 +33,18 @@ def handler(emojis, time, geo):
 	# Время в расстояние
 
 	# ! Учитывать время в каждой точке
-	radius = 80 * time # m/min * min -> geo dist # 80 # 85
+	radius = 2.5 * time # m/min * min -> geo dist # 85
+	geo_start = geo
+	radius_delta = 0
+
+	print('r=', radius)
 
 	#
 
 	for emoji in emojis:
 		# Ограничение, если слишком длинный путь
 
-		if len(points) > 3:
+		if len(points) > 2:
 			break
 
 		# Преобразование в категории
@@ -79,17 +81,9 @@ def handler(emojis, time, geo):
 
 			# Если место в обратной стороне
 
-			if len(points) > 1:
-				t = False
-
-				for ind, point in enumerate(points[:-1]):
-					if ((point['geo']['lat'] - places[o]['geometry']['location']['lat']) ** 2 + (point['geo']['lng'] - places[o]['geometry']['location']['lng']) ** 2) <= ((point['geo']['lat'] - points[ind+1]['geo']['lat']) ** 2 + (point['geo']['lng'] - points[ind+1]['geo']['lng']) ** 2):
-						t = True
-						break
-
-				if t:
-					del places[o]
-					continue
+			if len(points) >= 1 and ((geo_start['lat'] - places[o]['geometry']['location']['lat']) ** 2 + (geo_start['lng'] - places[o]['geometry']['location']['lng']) ** 2) <= radius_delta:
+				del places[o]
+				continue
 
 			# # Слишком близко
 
@@ -111,6 +105,7 @@ def handler(emojis, time, geo):
 		place = places[random.randint(0, len(places)-1)]
 
 		geo = place['geometry']['location'] # Обновляем текущее местоположение
+		radius_delta = ((geo_start['lat'] - place['geometry']['location']['lat']) ** 2 + (geo_start['lng'] - place['geometry']['location']['lng']) ** 2)
 
 		points.append({
 			'id': place['place_id'],
