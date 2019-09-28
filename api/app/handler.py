@@ -1,4 +1,5 @@
 import json
+import random
 
 import googlemaps
 
@@ -42,12 +43,22 @@ def handler(emojis, time, geo):
 			location_bias='circle:{}@{},{}'.format(radius, geo['lat'], geo['lng']),
 		)
 
-		geo = place['candidates'][0]['geometry']['location'] # Обновляем текущее местоположение
+		places = gmaps.places_nearby(
+			location=(geo['lat'], geo['lng']),
+			radius=radius,
+			keyword = category,
+		)['results']
+
+		# ! Если ни одного места?
+
+		place = places[random.randint(0, len(places)-1)]
+
+		geo = place['geometry']['location'] # Обновляем текущее местоположение
 
 		points.append({
-			'id': place['candidates'][0]['place_id'],
-			'name': place['candidates'][0]['name'],
-			'geo': place['candidates'][0]['geometry']['location'],
+			'id': place['place_id'],
+			'name': place['name'],
+			'geo': place['geometry']['location'],
 			'emoji': emoji,
 		})
 
