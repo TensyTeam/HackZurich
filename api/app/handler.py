@@ -17,6 +17,7 @@ gmaps = googlemaps.Client(key=KEY)
 
 def handler(emojis, time, geo):
 	points = []
+	ids = set()
 
 	# Выборка эмодзи
 
@@ -49,16 +50,16 @@ def handler(emojis, time, geo):
 
 		# Преобразование в места
 
-		place = gmaps.find_place(
-			category,
-			'textquery',
-			fields=[
-				'place_id',
-				'geometry/location',
-				'name',
-			],
-			location_bias='circle:{}@{},{}'.format(radius, geo['lat'], geo['lng']),
-		)
+		# place = gmaps.find_place(
+		# 	category,
+		# 	'textquery',
+		# 	fields=[
+		# 		'place_id',
+		# 		'geometry/location',
+		# 		'name',
+		# 	],
+		# 	location_bias='circle:{}@{},{}'.format(radius, geo['lat'], geo['lng']),
+		# )
 
 		places = gmaps.places_nearby(
 			location=(geo['lat'], geo['lng']),
@@ -66,7 +67,21 @@ def handler(emojis, time, geo):
 			keyword = category,
 		)['results']
 
-		# ! Если ни одного места?
+		# Если уже было такое место
+
+		o = 0
+		while len(places) > o:
+			if places[o]['place_id'] in ids:
+				del places[o]
+			else:
+				o += 1
+
+		# Если ни одного места
+
+		if not len(places):
+			continue
+
+		# Выбор конкретного места
 
 		place = places[random.randint(0, len(places)-1)]
 
